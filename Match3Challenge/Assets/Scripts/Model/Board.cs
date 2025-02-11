@@ -136,7 +136,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
             for (int i = 0; i < neighbors.Length; i++) {
                 
                 var neighbor = neighbors[i];
-                if (!searched.Contains(neighbor) && neighbor.type >= piece.type) {
+                if (!searched.Contains(neighbor) && neighbor.type == piece.type) {
                     SearchForConnected(neighbor, searched);
                 }
             }

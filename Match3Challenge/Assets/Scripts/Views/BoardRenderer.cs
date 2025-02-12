@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Tactile.TactileMatch3Challenge.Model;
+﻿using Tactile.TactileMatch3Challenge.Model;
 using UnityEngine;
 
 namespace Tactile.TactileMatch3Challenge.ViewComponents {
@@ -10,11 +9,10 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 		[SerializeField] private VisualPiece visualPiecePrefab;
 		
 		private Board board;
-		private VisualPiece[,] visualPieces;
 		
 		public void Initialize(Board board) {
 			this.board = board;
-			visualPieces = new VisualPiece[board.Width, board.Height];
+
 			CenterCamera();
 			CreateVisualPiecesFromBoardState();
 		}
@@ -29,28 +27,10 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 			foreach (var pieceInfo in board.IteratePieces()) {
 				
 				var visualPiece = CreateVisualPiece(pieceInfo.piece);
-				StartCoroutine(AnimatePiece(visualPiece, pieceInfo.pos.x, pieceInfo.pos.y));
+				visualPiece.transform.localPosition = LogicPosToVisualPos(pieceInfo.pos.x, pieceInfo.pos.y);
 
 			}
 		}
-
-		 private IEnumerator AnimatePiece(VisualPiece visualPiece, int targetX, int targetY) {
-            Vector3 startPos = LogicPosToVisualPos(targetX, targetY - board.Height);
-            Vector3 endPos = LogicPosToVisualPos(targetX, targetY);
-
-            float duration = 0.5f;
-            float elapsedTime = 0f;
-
-            visualPiece.transform.localPosition = startPos;
-
-            while (elapsedTime < duration) {
-                visualPiece.transform.localPosition = Vector3.Lerp(startPos, endPos, elapsedTime / duration);
-                elapsedTime += Time.deltaTime;
-                yield return null; 
-            }
-
-            visualPiece.transform.localPosition = endPos;
-        }
 		
 		public Vector3 LogicPosToVisualPos(float x,float y) { 
 			return new Vector3(x, -y, -y);

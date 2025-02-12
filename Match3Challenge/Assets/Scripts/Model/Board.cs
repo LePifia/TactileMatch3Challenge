@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Tactile.TactileMatch3Challenge.ViewComponents;
+using UnityEngine;
 
 namespace Tactile.TactileMatch3Challenge.Model {
     
@@ -6,6 +8,9 @@ namespace Tactile.TactileMatch3Challenge.Model {
         
         private Piece[,] boardState;
         private readonly IPieceSpawner pieceSpawner;
+
+        private BoardRenderer boardRenderer;
+        
 
         public static Board Create(int[,] definition, IPieceSpawner pieceSpawner) {
             return new Board(definition, pieceSpawner);
@@ -45,6 +50,8 @@ namespace Tactile.TactileMatch3Challenge.Model {
         public Piece CreatePiece(int pieceType, int x, int y) { 
             var piece = new Piece(){type = pieceType};
             boardState[x, y] = piece;
+
+            boardRenderer?.AddCreatedPiece(piece);
             return piece;
         }
         
@@ -241,6 +248,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
 					if(!resolveResult.changes.ContainsKey(pieceToMove)) {
 						resolveResult.changes[pieceToMove] = new ChangeInfo();
 						resolveResult.changes[pieceToMove].FromPos = new BoardPos(fromX,fromY);
+                        boardRenderer?.AddMovedPiece(pieceToMove);
 					};
 					resolveResult.changes[pieceToMove].ToPos = new BoardPos(x,y);
 					
@@ -249,5 +257,9 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
 			return movedAny;
 		}
+
+        public void SetBoardRenderer(BoardRenderer renderer) {
+            boardRenderer = renderer;
+        }
     }
 }

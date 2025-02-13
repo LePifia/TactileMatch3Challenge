@@ -66,16 +66,20 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 
 		private VisualPiece CreateVisualPiece(Piece piece) {
 			
-			var pieceObject = Instantiate(visualPiecePrefab, transform, true);
+			var pieceObject = ObjectPool.Instance.GetPiece();
+			pieceObject.transform.SetParent(transform, false);
+			pieceObject.transform.localPosition = Vector3.zero; // Reset position
+
 			var sprite = pieceTypeDatabase.GetSpriteForPieceType(piece.type);
 			pieceObject.SetSprite(sprite);
+			
 			return pieceObject;
 			
 		}
 
 		private void DestroyVisualPieces() {
 			foreach (var visualPiece in GetComponentsInChildren<VisualPiece>()) {
-				Object.Destroy(visualPiece.gameObject);
+				ObjectPool.Instance.ReturnPiece(visualPiece);
 			}
 		}
 

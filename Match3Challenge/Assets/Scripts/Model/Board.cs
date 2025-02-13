@@ -17,7 +17,6 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
         private BoardRenderer boardRenderer;
         private TypeOfConnections typeOfConnections;
-        private bool objectiveConnected;
 
         public static Board Create(int[,] definition, IPieceSpawner pieceSpawner) {
             return new Board(definition, pieceSpawner);
@@ -151,10 +150,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
             searched.Add(piece);
             var neighbors = GetNeighbors(x,y);
-
-            if (piece.type == 3 && objectiveConnected == true){
-                ResolveObjectivePieces();             
-            }
+            
             
             if (neighbors.Length == 0) {
                 return searched;
@@ -173,8 +169,6 @@ namespace Tactile.TactileMatch3Challenge.Model {
                         SearchForConnected(neighbor, searched);
                     }
                 }
-
-                objectiveConnected = false;
                 
             }
 
@@ -217,17 +211,13 @@ namespace Tactile.TactileMatch3Challenge.Model {
         public void FindAndRemoveConnectedAt(int x, int y, TypeOfConnections type) {
             var connections = GetConnected(x, y);
 
-                if (connections.Count >= 5 && typeOfConnections == TypeOfConnections.normal) {
-
-                    RemovePieces(connections);
-
-                    int newPieceType = Random.Range(5, 7);
-                    CreatePiece(newPieceType, x, y, false);
-                }
-
                 if (connections.Count > 1) {
                     RemovePieces(connections);
-                    objectiveConnected = true;
+                }
+
+                if (connections.Count >= 5 && typeOfConnections == TypeOfConnections.normal) {
+                    int newPieceType = Random.Range(5, 7);
+                    CreatePiece(newPieceType, x, y, false);
                 }
 
             typeOfConnections = TypeOfConnections.normal;
@@ -250,8 +240,17 @@ namespace Tactile.TactileMatch3Challenge.Model {
 		}
 
 		private void RemovePieces(List<Piece> connections) {
-			foreach (var piece in connections) {
+             HashSet<Piece> processedPieces = new HashSet<Piece>();
+            foreach (var piece in connections) {
 				int x,y;
+
+                if (piece.type == 3){
+                    if (!processedPieces.Contains(piece)) { 
+                        ResolveObjectivePieces();
+                        processedPieces.Add(piece);
+                    }        
+                }
+                
 				if(TryGetPiecePos(piece, out x, out y)){ 
 					RemovePieceAt(x,y);
 				}

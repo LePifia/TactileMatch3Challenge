@@ -128,8 +128,7 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 			}
 
 			if (elapsedTime > animationTime){
-				RefreshCreatedPieces();
-				RefreshMovedPieces();
+				RefreshPieces();
 			}
 			
 		}
@@ -138,16 +137,13 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 			createdPieces.Add(piece);
 		}
 
-		public void RefreshCreatedPieces() {
-            createdPieces.Clear();
-        }
-
 		public void AddMovedPiece(Piece piece) {
 			movedPieces.Add(piece);
 		}
 
-		public void RefreshMovedPieces() {
-            movedPieces.Clear();
+		public void RefreshPieces() {
+            createdPieces.Clear();
+			movedPieces.Clear();
         }
 
 		private void ChangeMovesMade(){

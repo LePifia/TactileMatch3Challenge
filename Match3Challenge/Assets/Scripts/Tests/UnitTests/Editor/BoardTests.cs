@@ -170,7 +170,7 @@ namespace Tactile.TactileMatch3Challenge.Tests.UnitTests {
 			var board = Board.Create(state, randomSpawner);
 			
 			// Act
-			board.FindAndRemoveConnectedAt(1, 2);
+			board.FindAndRemoveConnectedAt(1, 2, TypeOfConnections.normal);
 			board.MoveAndCreatePiecesUntilFull();
 
 			// Assert

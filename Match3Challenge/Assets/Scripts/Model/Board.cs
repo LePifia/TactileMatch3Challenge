@@ -3,6 +3,12 @@ using Tactile.TactileMatch3Challenge.ViewComponents;
 using UnityEngine;
 
 namespace Tactile.TactileMatch3Challenge.Model {
+
+    public enum TypeOfConnections{
+        normal,
+        specialPieceVertical,
+        specialPieceHorizontal
+    }
     
     public class Board : IBoard {
         
@@ -10,6 +16,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
         private readonly IPieceSpawner pieceSpawner;
 
         private BoardRenderer boardRenderer;
+        private TypeOfConnections typeOfConnections;
         
 
         public static Board Create(int[,] definition, IPieceSpawner pieceSpawner) {
@@ -42,16 +49,22 @@ namespace Tactile.TactileMatch3Challenge.Model {
             
             for (int y = 0; y < defHeight; y++) {
                 for (int x = 0; x < defWidth; x++) {
-                    CreatePiece(array[x,y], x, y);
+                    CreatePiece(array[x,y], x, y, true);
                 }
             }
         }
         
-        public Piece CreatePiece(int pieceType, int x, int y) { 
+        public Piece CreatePiece(int pieceType, int x, int y, bool createdpiece) { 
             var piece = new Piece(){type = pieceType};
             boardState[x, y] = piece;
 
-            boardRenderer?.AddCreatedPiece(piece);
+            if (createdpiece){
+                boardRenderer?.AddCreatedPiece(piece);
+            }
+            else{
+                boardRenderer?.AddMovedPiece(piece);
+            }
+            
             return piece;
         }
         
@@ -70,7 +83,11 @@ namespace Tactile.TactileMatch3Challenge.Model {
         }
 
         public ResolveResult Resolve(int x, int y) {
-	        FindAndRemoveConnectedAt(x, y);
+            ResolveSpecialPiecesHorizontal(x,y);
+            ResolveSpecialPiecesVertical(x,y);
+
+	        FindAndRemoveConnectedAt(x, y, typeOfConnections);
+            
 	        return MoveAndCreatePiecesUntilFull();
         }
 
@@ -142,10 +159,27 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
             for (int i = 0; i < neighbors.Length; i++) {
                 
-                var neighbor = neighbors[i];
-                if (!searched.Contains(neighbor) && neighbor.type == piece.type) {
-                    SearchForConnected(neighbor, searched);
+                if (typeOfConnections == TypeOfConnections.normal){
+                    var neighbor = neighbors[i];
+                    if (!searched.Contains(neighbor) && neighbor.type == piece.type) {
+                        SearchForConnected(neighbor, searched);
+                    }
                 }
+                
+                if(typeOfConnections == TypeOfConnections.specialPieceHorizontal){
+                    var neighbor = neighbors[i];
+                    if (!searched.Contains(neighbor)) {
+                        SearchForConnected(neighbor, searched);
+                    }
+                }
+                
+                if(typeOfConnections == TypeOfConnections.specialPieceVertical){
+                    var neighbor = neighbors[i];
+                    if (!searched.Contains(neighbor)) {
+                        SearchForConnected(neighbor, searched);
+                    }
+                }
+                
             }
 
             return searched;
@@ -154,12 +188,23 @@ namespace Tactile.TactileMatch3Challenge.Model {
         public Piece[] GetNeighbors(int x, int y) {
 
             var neighbors = new List<Piece>(4);
-            
-            neighbors = AddNeighbor(x - 1, y, neighbors); // Left
-            neighbors = AddNeighbor(x, y - 1, neighbors); // Top
-            neighbors = AddNeighbor(x + 1, y, neighbors); // Right
-            neighbors = AddNeighbor(x, y + 1, neighbors); // Bottom
 
+            if (typeOfConnections == TypeOfConnections.normal){
+                neighbors = AddNeighbor(x - 1, y, neighbors); // Left
+                neighbors = AddNeighbor(x, y - 1, neighbors); // Top
+                neighbors = AddNeighbor(x + 1, y, neighbors); // Right
+                neighbors = AddNeighbor(x, y + 1, neighbors); // Bottom
+            }
+            
+            if (typeOfConnections == TypeOfConnections.specialPieceVertical){
+                neighbors = AddNeighbor(x, y - 1, neighbors); // Top
+                neighbors = AddNeighbor(x, y + 1, neighbors); // Bottom
+            }
+
+            if (typeOfConnections == TypeOfConnections.specialPieceHorizontal){
+                neighbors = AddNeighbor(x - 1, y, neighbors); // Left
+                neighbors = AddNeighbor(x + 1, y, neighbors); // Right
+            }
             return neighbors.ToArray();
         }
         
@@ -170,13 +215,23 @@ namespace Tactile.TactileMatch3Challenge.Model {
             return neighbors;
         }
         
-        public void FindAndRemoveConnectedAt(int x, int y) {
+        public void FindAndRemoveConnectedAt(int x, int y, TypeOfConnections type) {
+            var connections = GetConnected(x, y);
 
-			var connections = GetConnected(x, y);
-			if (connections.Count > 1) {
-				RemovePieces(connections);
-			}
-		}
+                if (connections.Count >= 5 && typeOfConnections == TypeOfConnections.normal) {
+
+                    RemovePieces(connections);
+
+                    int newPieceType = Random.Range(5, 7);
+                    CreatePiece(newPieceType, x, y, false);
+                }
+
+                if (connections.Count > 1) {
+                    RemovePieces(connections);
+                }
+
+            typeOfConnections = TypeOfConnections.normal;
+        }
 
 		public ResolveResult MoveAndCreatePiecesUntilFull() {
 			
@@ -208,7 +263,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
 			var y = 0;
 			for (int x = 0; x < Width; x++) {
 				if (GetAt(x, y) == null) { 
-					var piece = CreatePiece(pieceSpawner.CreateBasicPiece(), x,y);
+					var piece = CreatePiece(pieceSpawner.CreateBasicPiece(), x,y, true);
 					createdAnyPieces = true;
                     
 					resolveResult.changes[piece] = new ChangeInfo(){
@@ -260,6 +315,35 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
         public void SetBoardRenderer(BoardRenderer renderer) {
             boardRenderer = renderer;
+        }
+
+        private void ResolveSpecialPiecesHorizontal(int x, int y) {
+
+            var piece = GetAt(x, y);
+
+            if (piece != null && (piece.type == 5)) {
+                typeOfConnections = TypeOfConnections.specialPieceHorizontal;
+                Debug.Log($"Found special piece of type {piece.type} at position: ({x}, {y})");
+                Debug.Log (typeOfConnections);
+
+                
+             }
+                
+            
+        }
+
+        private void ResolveSpecialPiecesVertical(int x, int y) {
+
+            var piece = GetAt(x, y);
+
+            if (piece != null && (piece.type == 6)) {
+                typeOfConnections = TypeOfConnections.specialPieceVertical;
+                Debug.Log($"Found special piece of type {piece.type} at position: ({x}, {y})");
+
+                
+             }
+                
+            
         }
     }
 }

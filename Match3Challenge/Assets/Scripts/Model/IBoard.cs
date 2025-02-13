@@ -7,7 +7,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
         int Width { get; }
         int Height { get; }
         
-        Piece CreatePiece(int pieceType, int x, int y);
+        Piece CreatePiece(int pieceType, int x, int y, bool specialPiece);
         Piece GetAt(int x, int y);
         
         void MovePiece(int fromX, int fromY, int toX, int toY);

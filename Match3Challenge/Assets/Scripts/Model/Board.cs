@@ -17,6 +17,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
         private BoardRenderer boardRenderer;
         private TypeOfConnections typeOfConnections;
+        private bool objectiveConnected;
 
         public static Board Create(int[,] definition, IPieceSpawner pieceSpawner) {
             return new Board(definition, pieceSpawner);
@@ -138,6 +139,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
         
         public List<Piece> GetConnected(int x, int y) {
             var start = GetAt(x, y);
+            
             return SearchForConnected(start, new List<Piece>());
         }
 
@@ -149,6 +151,10 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
             searched.Add(piece);
             var neighbors = GetNeighbors(x,y);
+
+            if (piece.type == 3 && objectiveConnected == true){
+                ResolveObjectivePieces();             
+            }
             
             if (neighbors.Length == 0) {
                 return searched;
@@ -167,6 +173,8 @@ namespace Tactile.TactileMatch3Challenge.Model {
                         SearchForConnected(neighbor, searched);
                     }
                 }
+
+                objectiveConnected = false;
                 
             }
 
@@ -219,6 +227,7 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
                 if (connections.Count > 1) {
                     RemovePieces(connections);
+                    objectiveConnected = true;
                 }
 
             typeOfConnections = TypeOfConnections.normal;
@@ -317,6 +326,11 @@ namespace Tactile.TactileMatch3Challenge.Model {
                 typeOfConnections = TypeOfConnections.specialPieceVertical;
              }   
                 
+        }
+
+        private void ResolveObjectivePieces() {
+                int objectivePieces = LevelDataReferencer.Instance.GetLevelObjective();
+                LevelDataReferencer.Instance.SetLevelObjective(objectivePieces - 1);
         }
     }
 }

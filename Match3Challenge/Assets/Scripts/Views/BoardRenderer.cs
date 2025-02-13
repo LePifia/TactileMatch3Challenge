@@ -86,10 +86,14 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 				var pos = ScreenPosToLogicPos(Input.mousePosition.x, Input.mousePosition.y);
 
 				if (board.IsWithinBounds(pos.x, pos.y)) {
-					board.Resolve(pos.x, pos.y);
-					CreateVisualPiecesFromBoardState();
-				}
 
+					if (VictoryConditionsManager.Instance.GetEndOfGame() == false){
+						board.Resolve(pos.x, pos.y);
+						ChangeMovesMade();
+						VictoryConditionsManager.Instance.CheckVictoryOrLoseConditions();
+						CreateVisualPiecesFromBoardState();
+					}
+				}
 			}
 		}
 
@@ -145,6 +149,14 @@ namespace Tactile.TactileMatch3Challenge.ViewComponents {
 		public void RefreshMovedPieces() {
             movedPieces.Clear();
         }
+
+		private void ChangeMovesMade(){
+			int movesAvalible = LevelDataReferencer.Instance.GetMovesAvalible() -1;
+			LevelDataReferencer.Instance.SetMovesAvalible(movesAvalible);
+
+			int movesUsed = LevelDataReferencer.Instance.GetMovesUsed() +1;
+			LevelDataReferencer.Instance.SetMovesUsed(movesUsed);
+		}
 		
 	}
 

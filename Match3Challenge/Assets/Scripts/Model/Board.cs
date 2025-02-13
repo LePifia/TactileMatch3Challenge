@@ -17,7 +17,6 @@ namespace Tactile.TactileMatch3Challenge.Model {
 
         private BoardRenderer boardRenderer;
         private TypeOfConnections typeOfConnections;
-        
 
         public static Board Create(int[,] definition, IPieceSpawner pieceSpawner) {
             return new Board(definition, pieceSpawner);
